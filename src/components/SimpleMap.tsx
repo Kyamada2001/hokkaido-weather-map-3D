@@ -29,8 +29,6 @@ export default function SimpleMap() {
     }
     
     useEffect(() => {
-        getFeatures();
-        console.log(features)
         const initializeMap = ({
         setMap,
         mapContainer,
@@ -52,26 +50,31 @@ export default function SimpleMap() {
         const language = new MapboxLanguage({ defaultLanguage: 'ja' });
         map.addControl(language);
 
-        // Create a React ref
+        getFeatures();
+        map.on('load', () => {
+            setMap(map);
+            map.resize();
+        });
+        }
+        if (!map) initializeMap({ setMap, mapContainer });
+  }, [map]);
+
+  useEffect(() => {
+    if(!features) return
+    features.forEach((feature: any) => {
+        console.log(feature)
         const ref: any = React.createRef();
         ref.current = document.createElement('div');
         createRoot(ref.current).render(
             <Marker/>
         );
-
         // Create a Mapbox Marker at our new DOM node
         new mapboxgl.Marker(ref.current)
-            .setLngLat([143.21, 42.73])
-            .addTo(map);
-    
-        map.on('load', () => {
-            setMap(map);
-            map.resize();
-        });
-        };
-    
-        if (!map) initializeMap({ setMap, mapContainer });
-  }, [map]);
+            .setLngLat([feature[1], feature[2]])
+            .addTo(map!);
+    })
+
+  },[features])
  
   return (
     <>
