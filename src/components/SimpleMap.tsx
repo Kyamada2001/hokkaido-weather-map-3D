@@ -4,15 +4,16 @@ import MapboxLanguage from '@mapbox/mapbox-gl-language';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
- 
+import { IoVideocam } from "react-icons/io5";
+import "../index.css"
 
 // interface MarkerProps {
 //     feature: any; // 任意の型に置き換える
 // }
 const Marker = () => {  
     return (
-      <button onClick={() => {}} className="marker">
-        <div>アイコンアイコン</div>
+      <button onClick={() => {}} className="rounded-full bg-black inline p-3">
+        <IoVideocam size={30} color='#f8fafc'/>
       </button>
     );
 };
