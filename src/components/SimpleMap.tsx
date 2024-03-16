@@ -7,12 +7,38 @@ import { createRoot } from 'react-dom/client';
 import { IoVideocam } from "react-icons/io5";
 import "../index.css"
 import axios from "axios";
+import Youtube from 'react-youtube';
 
-const Marker = () => {  
+type MarkerProps = {
+    youtubeUrl: string;
+    lng: number;
+    lat: number;
+};
+const Marker = ({youtubeUrl,lng,lat}: MarkerProps) => {
+    const youtubeRegex = /(?<=watch\?v=)([^&\s]+)/;
+    const [modalStatus, setModalStatus] = useState(false)
+    const [videoId, setVideoId] = useState<string>("")
+    
+    
+    useEffect(() => {
+        const match = youtubeUrl.match(youtubeRegex);
+        const tmpVideoId = match ? match[0] : '';
+        setVideoId(tmpVideoId)
+    })
+
     return (
-      <button onClick={() => {}} className="rounded-full bg-black inline p-3">
-        <IoVideocam size={30} color='#f8fafc'/>
-      </button>
+        <>
+            {
+                modalStatus ? (
+                    <div className='w-30 h-30'>
+                        <Youtube videoId={videoId}/>
+                    </div>
+                ) : ''
+            }
+            <button onClick={()=> setModalStatus(true)} className="rounded-full bg-black inline p-3">
+                <IoVideocam size={30} color='#f8fafc'/>
+            </button>
+        </>
     );
 };
 export default function SimpleMap() {
@@ -60,21 +86,26 @@ export default function SimpleMap() {
   }, [map]);
 
   useEffect(() => {
-    if(!features) return
+    console.log(map)
+
+    if(!features || !map) return;
     features.forEach((feature: any) => {
-        console.log(feature)
+        // const liveName = feature[0]
+        const lng: number = feature[1]
+        const lat: number = feature[2]
+        const youtubeUrl: string = feature[3]
+        
         const ref: any = React.createRef();
         ref.current = document.createElement('div');
         createRoot(ref.current).render(
-            <Marker/>
+            <Marker youtubeUrl={youtubeUrl} lat={lat} lng={lng}/>
         );
         // Create a Mapbox Marker at our new DOM node
         new mapboxgl.Marker(ref.current)
-            .setLngLat([feature[1], feature[2]])
+            .setLngLat([lng, lat])
             .addTo(map!);
-    })
-
-  },[features])
+        })
+  },[features,map])
  
   return (
     <>
