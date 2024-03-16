@@ -17,6 +17,7 @@ const Marker = () => {
     );
 };
 export default function SimpleMap() {
+  // TODO: トークンは環境変数にいれ、GIt履歴に残っているトークンは削除
   mapboxgl.accessToken = "pk.eyJ1Ijoia3lhbWFkIiwiYSI6ImNsdHJueGk0ODA4d3MyanBleTRhYWMxbHMifQ.mpKpByZH_GUNVMXK1n86aA";
   const mapContainer = useRef(null);
   const [map, setMap] = useState(null);
