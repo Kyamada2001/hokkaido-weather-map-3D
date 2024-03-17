@@ -14,39 +14,14 @@ type MarkerProps = {
     lng: number;
     lat: number;
 };
-const Marker = ({youtubeUrl,lng,lat}: MarkerProps) => {
-    const youtubeRegex = /(?<=watch\?v=)([^&\s]+)/;
-    const [modalStatus, setModalStatus] = useState(false)
-    const [videoId, setVideoId] = useState<string>("")
-    
-    
-    useEffect(() => {
-        const match = youtubeUrl.match(youtubeRegex);
-        const tmpVideoId = match ? match[0] : '';
-        setVideoId(tmpVideoId)
-    })
 
-    return (
-        <>
-            {
-                modalStatus ? (
-                    <div className='w-30 h-30'>
-                        <Youtube videoId={videoId}/>
-                    </div>
-                ) : ''
-            }
-            <button onClick={()=> setModalStatus(true)} className="rounded-full bg-black inline p-3">
-                <IoVideocam size={30} color='#f8fafc'/>
-            </button>
-        </>
-    );
-};
 export default function SimpleMap() {
     // TODO: トークンは環境変数にいれ、GIt履歴に残っているトークンは削除
     mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_KEY
     const mapContainer = useRef(null);
     const [map, setMap] = useState(null);
     const [features, setFeatures] = useState([])
+    const [showYoutubeId, setShowYoutubeId] = useState("")
 
     const getFeatures = async () => {
         const url = `https://sheets.googleapis.com/v4/spreadsheets/${import.meta.env.VITE_FEATURE_SPREADSHEET_SHEETID}/values/${import.meta.env.VITE_FEATURE_SPREADSHEET_SHEETNAME}?key=${import.meta.env.VITE_FEATURE_SPREADSHEET_KEY}`
@@ -85,9 +60,11 @@ export default function SimpleMap() {
         if (!map) initializeMap({ setMap, mapContainer });
   }, [map]);
 
-  useEffect(() => {
-    console.log(map)
+    const onClickCamera = (videoId: string) => {
+        setShowYoutubeId(videoId)
+    }
 
+  useEffect(() => {
     if(!features || !map) return;
     features.forEach((feature: any) => {
         // const liveName = feature[0]
@@ -98,7 +75,7 @@ export default function SimpleMap() {
         const ref: any = React.createRef();
         ref.current = document.createElement('div');
         createRoot(ref.current).render(
-            <Marker youtubeUrl={youtubeUrl} lat={lat} lng={lng}/>
+            <Marker clickCamera={onClickCamera} youtubeUrl={youtubeUrl} lat={lat} lng={lng}/>
         );
         // Create a Mapbox Marker at our new DOM node
         new mapboxgl.Marker(ref.current)
@@ -106,10 +83,78 @@ export default function SimpleMap() {
             .addTo(map!);
         })
   },[features,map])
- 
-  return (
-    <>
-      <div ref={mapContainer} style={{ width: '100%', height: '100vh' }} />
-    </>
-  );
+
+    const Marker: React.FC<{clickCamera: any, youtubeUrl: string,lng:number, lat: number}> = ({clickCamera, youtubeUrl,lng,lat}) => {
+        const youtubeRegex = /(?<=watch\?v=)([^&\s]+)/;
+        const [modalStatus, setModalStatus] = useState(false)
+        const [videoId, setVideoId] = useState<string>("")
+        
+        
+        useEffect(() => {
+            const match = youtubeUrl.match(youtubeRegex);
+            const tmpVideoId = match ? match[0] : '';
+            setVideoId(tmpVideoId)
+        })
+
+        const onClickCamera = () => {
+            clickCamera(videoId)
+            setModalStatus(true)
+        }
+
+        return (
+            <>
+                <div className='relative'>
+                    {
+                        modalStatus ? (
+                            // <div className="">
+                            //     <Youtube className="h-30" videoId={videoId}/>
+                            // </div>
+                            <div
+                                className={[
+                                "whitespace-nowrap",
+                                "rounded",
+                                "bg-black",
+                                "px-2",
+                                "py-1",
+                                "text-white",
+                                "absolute",
+                                "-top-12",
+                                "left-1/2",
+                                "-translate-x-1/2",
+                                "before:content-['']",
+                                "before:absolute",
+                                "before:-translate-x-1/2",
+                                "before:left-1/2",
+                                "before:top-full",
+                                "before:border-4",
+                                "before:border-transparent",
+                                "before:border-t-black",
+                                ].join(" ")}
+                            >
+                                {/* <Youtube className="h-fit" videoId={videoId}/> */}
+                            </div>
+                        ) : ''
+                    }
+                    <button onClick={onClickCamera} className="block rounded-full bg-black p-2">
+                        <IoVideocam size={25} color='#f8fafc'/>
+                    </button>
+                </div>
+            </>
+        );
+    };
+
+    return (
+        <>
+            <div>
+                <div ref={mapContainer} style={{ width: '100%', height: '100vh' }} />
+                {   
+                    showYoutubeId ?
+                    <div className="fixed bottom-1 left-1/2 -translate-x-1/2 bg-gray-800 p-3 bg-opacity-70">
+                        <Youtube className="opacity-100" opts={{height: '300',width: '400'}} videoId={showYoutubeId}/>
+                    </div>
+                    : ''
+                }
+            </div>
+        </>
+    );
 }
