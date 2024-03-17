@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import MapboxLanguage from '@mapbox/mapbox-gl-language';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -9,6 +9,7 @@ import { FaCompass } from "react-icons/fa";
 import "../index.css"
 import axios from "axios";
 import Youtube from 'react-youtube';
+import { MdOutlineCancel } from "react-icons/md";
 
 
 type LiveInfo = {
@@ -130,6 +131,10 @@ export default function SimpleMap() {
         setShowLiveInfo(liveInfo)
     }
 
+    const cancelLive = () => {
+        setShowLiveInfo(null)
+    }
+
     const flyMap = (lng: number,lat: number) => {
         console.log("FLy")
         if(!map) return ;
@@ -174,7 +179,10 @@ export default function SimpleMap() {
                 {   
                     showLiveInfo ?
                     <div className="fixed bottom-1 left-1/2 -translate-x-1/2 bg-gray-800 p-3 bg-opacity-70 space-y-2">
-                        <div className='flex flex-row justify-between'>
+                        <button className='absolute top-0 right-0' onClick={() => cancelLive()}>
+                            <MdOutlineCancel color='#f8fafc' size={30}/>
+                        </button>
+                        <div className='flex flex-row space-x-2'>
                             <p className='text-white'>{showLiveInfo.liveName}</p>
                             <button onClick={() => flyMap(showLiveInfo.lng,showLiveInfo.lat)}>
                                 <FaCompass size={30} color='#60a5fa'/>
