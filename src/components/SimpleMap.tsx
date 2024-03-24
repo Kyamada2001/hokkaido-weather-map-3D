@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useContext } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import MapboxLanguage from '@mapbox/mapbox-gl-language';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -26,7 +26,7 @@ type LiveInfo = {
 
 const Marker: React.FC<LiveInfo & any> = ({clickCamera, liveName,youtubeUrl,lng,lat}) => {
     const youtubeRegex = /(?<=watch\?v=)([^&\s]+)/;
-    const [modalStatus, setModalStatus] = useState(false)
+    // const [modalStatus, setModalStatus] = useState(false)
     const [videoId, setVideoId] = useState<string>("")
     
     useEffect(() => {
@@ -43,7 +43,7 @@ const Marker: React.FC<LiveInfo & any> = ({clickCamera, liveName,youtubeUrl,lng,
             lat: lat
         }
         clickCamera(sendLiveInfo)
-        setModalStatus(true)
+        // setModalStatus(true)
     }
 
     return (
