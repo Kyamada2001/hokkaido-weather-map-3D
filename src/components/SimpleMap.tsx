@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useContext } from 'react';
 import mapboxgl from 'mapbox-gl';
 import MapboxLanguage from '@mapbox/mapbox-gl-language';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -10,6 +10,10 @@ import "../index.css"
 import axios from "axios";
 import Youtube from 'react-youtube';
 import { MdOutlineCancel } from "react-icons/md";
+// import  MapContext  from 'react-map-gl';
+import RainLayer from 'mapbox-gl-rain-layer';
+// import { any } from 'three/examples/jsm/nodes/Nodes.js';
+// import { render } from 'react-dom';
 
 
 type LiveInfo = {
@@ -45,34 +49,6 @@ const Marker: React.FC<LiveInfo & any> = ({clickCamera, liveName,youtubeUrl,lng,
     return (
         <>
             <div className='relative'>
-                {/* {
-                    modalStatus ? (
-                        <div
-                            className={[
-                            "whitespace-nowrap",
-                            "rounded",
-                            "bg-black",
-                            "px-2",
-                            "py-1",
-                            "text-white",
-                            "absolute",
-                            "-top-12",
-                            "left-1/2",
-                            "-translate-x-1/2",
-                            "before:content-['']",
-                            "before:absolute",
-                            "before:-translate-x-1/2",
-                            "before:left-1/2",
-                            "before:top-full",
-                            "before:border-4",
-                            "before:border-transparent",
-                            "before:border-t-black",
-                            ].join(" ")}
-                        >
-                            {liveName}
-                        </div>
-                    ) : ''
-                } */}
                 <button onClick={onClickCamera} className="block rounded-full bg-black p-2">
                     <IoVideocam size={25} color='#f8fafc'/>
                 </button>
@@ -83,49 +59,20 @@ const Marker: React.FC<LiveInfo & any> = ({clickCamera, liveName,youtubeUrl,lng,
 
 
 export default function SimpleMap() {
-    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_KEY
-
-    const mapContainer = useRef(null);
+    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_KEY;
+    const mapContainer = useRef<any>(null);
     const [map, setMap] = useState<any>(null);
+    // const renderer = useRef<any>(null);
+    // const snowflakes = useRef<any>([]);
     const [features, setFeatures] = useState([])
     const [showLiveInfo, setShowLiveInfo] = useState<null | LiveInfo>(null)
+    const [isMapRendering, setIsMapRendering] = useState<boolean>(false)
 
     const getFeatures = async () => {
         const url = `https://sheets.googleapis.com/v4/spreadsheets/${import.meta.env.VITE_FEATURE_SPREADSHEET_SHEETID}/values/${import.meta.env.VITE_FEATURE_SPREADSHEET_SHEETNAME}?key=${import.meta.env.VITE_FEATURE_SPREADSHEET_KEY}`
         const res = await axios.get(url);
         setFeatures(res.data.values)
     }
-    
-    useEffect(() => {
-        const initializeMap = ({
-        setMap,
-        mapContainer,
-        }: {
-        setMap: any;
-        mapContainer: any;
-        }) => {
-        const map = new mapboxgl.Map({
-            container: mapContainer.current,
-            center: [143.21, 42.73], // 東京駅を初期値点として表示（緯度、経度を指定）
-            zoom: 8,
-            style: 'mapbox://styles/mapbox/streets-v12',
-            pitch: 60,
-            bearing: -18.6,
-            antialias: true,
-        });
-        // 言語変更設定参考
-        // defaultLanguageとしてjaを指定
-        const language = new MapboxLanguage({ defaultLanguage: 'ja' });
-        map.addControl(language);
-
-        getFeatures();
-        map.on('load', () => {
-            setMap(map);
-            map.resize();
-        });
-        }
-        if (!map) initializeMap({ setMap, mapContainer });
-    }, [map]);
 
     const onClickCamera = (liveInfo: LiveInfo) => {
         setShowLiveInfo(liveInfo)
@@ -135,15 +82,110 @@ export default function SimpleMap() {
         setShowLiveInfo(null)
     }
 
+
+    
+    useEffect(() => {
+        const initializeMap = ({
+            setMap,
+            mapContainer,
+        }: {
+        setMap: any;
+        mapContainer: any;
+        }) => {
+            console.log("レンダリング")
+            const map = new mapboxgl.Map({
+                container: mapContainer.current,
+                center: [142.79, 42.87], // 東京駅を初期値点として表示（緯度、経度を指定）
+                zoom: 6.5,
+                minZoom: 6, 
+                style: 'mapbox://styles/mapbox/navigation-night-v1',
+                pitch: 50,
+                bearing: -15.6,
+                antialias: true,
+            });
+            // 言語変更設定参考
+            // defaultLanguageとしてjaを指定
+            const language = new MapboxLanguage({ defaultLanguage: 'ja' });
+            map.addControl(language);
+    
+            map.on('load', () => {
+                const rainLayer = new RainLayer({
+                    id: 'rain',
+                    source: 'rainviewer',
+                    scale: 'noaa',
+                    meshOpacity: 0.1,
+                    rainColor: '#1e3a8a',
+                    snowColor: '#f0f9ff'
+                });
+                map.addLayer(rainLayer);
+
+                map.addLayer(
+                    {
+                    'id': 'add-3d-buildings',
+                    'source': 'composite',
+                    'source-layer': 'building',
+                    'filter': ['==', 'extrude', 'true'],
+                    'type': 'fill-extrusion',
+                    'minzoom': 15,
+                    'paint': {
+                    'fill-extrusion-color': '#aaa',
+                     
+                    // Use an 'interpolate' expression to
+                    // add a smooth transition effect to
+                    // the buildings as the user zooms in.
+                    'fill-extrusion-height': [
+                    'interpolate',
+                    ['linear'],
+                    ['zoom'],
+                    15,
+                    0,
+                    15.05,
+                    ['get', 'height']
+                    ],
+                    'fill-extrusion-base': [
+                    'interpolate',
+                    ['linear'],
+                    ['zoom'],
+                    15,
+                    0,
+                    15.05,
+                    ['get', 'min_height']
+                    ],
+                    'fill-extrusion-opacity': 0.9
+                    }
+                    },
+                    'building'
+                );
+    
+                setMap(map);
+                map.resize();
+                // scene.current.add(camera)
+            });
+        }
+
+        if(features.length < 1) {
+            console.log("ライブカメラ取得")
+            getFeatures()
+        }
+        if (!map && !isMapRendering) {
+            console.log(isMapRendering)
+            setIsMapRendering(true)
+            initializeMap({ setMap, mapContainer });
+        }
+    },[isMapRendering])
+
     const flyMap = (lng: number,lat: number) => {
-        console.log("FLy")
+        let zoomLevel = 10;
         if(!map) return ;
+
+        const currentZoomLevel = map.getZoom()
+        if(currentZoomLevel > 10) zoomLevel = currentZoomLevel
         map.flyTo({
             center: [
             lng,
             lat
             ],
-            zoom: 10,
+            zoom: zoomLevel,
             essential: true // this animation is considered essential with respect to prefers-reduced-motion
         });
     }
@@ -170,7 +212,7 @@ export default function SimpleMap() {
                 .setLngLat([lng, lat])
                 .addTo(map!);
             })
-    },[features,map])
+    },[features, map])
 
     return (
         <>
