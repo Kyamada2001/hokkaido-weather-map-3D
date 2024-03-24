@@ -25,14 +25,15 @@ type LiveInfo = {
 
 
 const Marker: React.FC<LiveInfo & any> = ({clickCamera, liveName,youtubeUrl,lng,lat}) => {
-    const youtubeRegex = /(?<=watch\?v=)([^&\s]+)/;
+    const youtubeRegex = /(?:\?v=|\/embed\/|\/\d+\?v=|\/v\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
     // const [modalStatus, setModalStatus] = useState(false)
     const [videoId, setVideoId] = useState<string>("")
     
     useEffect(() => {
         const match = youtubeUrl.match(youtubeRegex);
-        const tmpVideoId = match ? match[0] : '';
-        setVideoId(tmpVideoId)
+        console.log(match)
+        const tmpVideoId = match ? match[1] : '';
+        setVideoId(tmpVideoId);
     })
 
     const onClickCamera = () => {
