@@ -31,7 +31,6 @@ const Marker: React.FC<LiveInfo & any> = ({clickCamera, liveName,youtubeUrl,lng,
     
     useEffect(() => {
         const match = youtubeUrl.match(youtubeRegex);
-        console.log(match)
         const tmpVideoId = match ? match[1] : '';
         setVideoId(tmpVideoId);
     })
@@ -93,7 +92,6 @@ export default function SimpleMap() {
         setMap: any;
         mapContainer: any;
         }) => {
-            console.log("レンダリング")
             const map = new mapboxgl.Map({
                 container: mapContainer.current,
                 center: [142.79, 42.87], // 東京駅を初期値点として表示（緯度、経度を指定）
@@ -165,11 +163,9 @@ export default function SimpleMap() {
         }
 
         if(features.length < 1) {
-            console.log("ライブカメラ取得")
             getFeatures()
         }
         if (!map && !isMapRendering) {
-            console.log(isMapRendering)
             setIsMapRendering(true)
             initializeMap({ setMap, mapContainer });
         }
@@ -221,17 +217,19 @@ export default function SimpleMap() {
                 <div ref={mapContainer} style={{ width: '100%', height: '100vh' }} />
                 {   
                     showLiveInfo ?
-                    <div className="fixed bottom-1 left-1/2 -translate-x-1/2 bg-gray-800 p-3 bg-opacity-70 space-y-2">
-                        <button className='absolute top-0 right-0' onClick={() => cancelLive()}>
-                            <MdOutlineCancel color='#f8fafc' size={30}/>
-                        </button>
-                        <div className='flex flex-row space-x-2'>
-                            <p className='text-white'>{showLiveInfo.liveName}</p>
-                            <button onClick={() => flyMap(showLiveInfo.lng,showLiveInfo.lat)}>
-                                <FaCompass size={30} color='#60a5fa'/>
+                    <div className="fixed bottom-1 left-1/2 -translate-x-1/2 bg-gray-800 p-3 bg-opacity-70 space-y-2 w-11/12 md:w-auto h-auto inline-flex items-center justify-center">
+                        <div>
+                            <button className='absolute top-0 right-0' onClick={() => cancelLive()}>
+                                <MdOutlineCancel color='#f8fafc' size={30}/>
                             </button>
+                            <div className='flex flex-row space-x-2'>
+                                <p className='text-white'>{showLiveInfo.liveName}</p>
+                                <button onClick={() => flyMap(showLiveInfo.lng,showLiveInfo.lat)}>
+                                    <FaCompass size={30} color='#60a5fa'/>
+                                </button>
+                            </div>
+                            <Youtube className="opacity-100" opts={{height: '200',width: '330'}} videoId={showLiveInfo.videoId}/>
                         </div>
-                        <Youtube className="opacity-100" opts={{height: '300',width: '400'}} videoId={showLiveInfo.videoId}/>
                     </div>
                     : ''
                 }
